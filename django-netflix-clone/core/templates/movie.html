@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Le reste du contenu va ici -->
+    <div class="movie-player-container bg-black relative w-full" style="padding-top: 56.25%;">
+        <video id="moviePlayer" class="absolute top-0 left-0 w-full h-full" controls>
+            <source src="{{ movie_details.video.url }}" type="video/mp4">
+            Votre navigateur ne supporte pas les vidéos HTML5.
+        </video>
+    </div>
+
+    <div class="movie-details mt-6">
+        <h1 class="text-4xl font-bold mb-2">{{ movie_details.title }}</h1>
+        <div class="flex items-center space-x-4 text-gray-400 mb-4">
+            <span>{{ movie_details.release_date|date:'Y' }}</span>
+            <span>{{ movie_details.length }} min</span>
+            <span>{{ movie_details.get_genre_display }}</span>
+        </div>
+        
+        <p class="text-lg mb-6">{{ movie_details.description }}</p>
+        
+        <div class="flex space-x-4">
+            <button id="addToListBtn" class="add-to-list-btn" onclick="addToList('{{ movie_details.uu_id }}')">
+                <i class="fas fa-plus"></i>
+                <span>Ajouter à ma liste</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="notification" class="notification">
+    <span id="notificationMessage"></span>
+</div>
+
+<style>
+    .movie-player-container {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        margin-bottom: 2rem;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    #moviePlayer {
+        background-color: black;
+    }
+    
+    .add-to-list-btn {
+        background-color: rgba(220, 38, 38, 0.9);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.25rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .add-to-list-btn:hover {
+        background-color: rgba(185, 28, 28, 0.9);
+        transform: translateY(-2px);
+    }
+    
+    .add-to-list-btn:active {
+        transform: translateY(0);
+    }
+    
+    .add-to-list-btn i {
+        font-size: 1.1rem;
+    }
+    
+    .notification {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        display: none;
+        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<script>
+    // Mettre à jour le nombre de vues du film
+    document.addEventListener('DOMContentLoaded', function() {
+        // Augmenter automatiquement le nombre de vues
+        updateMovieViews();
+    });
+    
+    function updateMovieViews() {
+        // Ici vous pourriez ajouter du code pour incrémenter le nombre de vues
+        console.log('Mise à jour des vues');
+    }
+
+    function addToList(movieId) {
+        console.log("Adding to list: " + movieId);
+        
+        $.ajax({
+            url: "{% url 'add-to-list' %}",
+            type: "POST",
+            data: {
+                movie_id: movieId,
+                csrfmiddlewaretoken: "{{ csrf_token }}"
+            },
+            success: function(data) {
+                showNotification(data.message);
+                
+                // Désactiver le bouton après ajout
+                const addBtn = document.getElementById('addToListBtn');
+                addBtn.innerHTML = '<i class="fas fa-check"></i><span>Ajouté à ma liste</span>';
+                addBtn.disabled = true;
+                addBtn.style.backgroundColor = 'rgba(75, 85, 99, 0.9)';
+            },
+            error: function(xhr, errmsg, err) {
+                showNotification("Erreur lors de l'ajout à la liste");
+                console.error("Error adding to list: " + errmsg);
+            }
+        });
+    }
+    
+    function showNotification(message) {
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notificationMessage');
+        
+        notificationMessage.textContent = message;
+        notification.style.display = 'block';
+        
+        setTimeout(function() {
+            notification.style.display = 'none';
+        }, 3000);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Profile - Netfilm</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .profile-image-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .custom-file-input::-webkit-file-upload-button {
+            visibility: hidden;
+        }
+        .custom-file-input::before {
+            content: 'Select Image';
+            display: inline-block;
+            background: linear-gradient(to bottom, #666, #444);
+            border: 1px solid #999;
+            border-radius: 3px;
+            padding: 5px 8px;
+            outline: none;
+            white-space: nowrap;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 10pt;
+        }
+        .custom-file-input:hover::before {
+            border-color: #fff;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="container mx-auto px-4 py-16">
+        <div class="max-w-md mx-auto">
+            <h1 class="text-4xl font-bold mb-8 text-center">Create Profile</h1>
+            
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <span class="block sm:inline">{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="text-center mb-8">
+                    <div class="profile-image-preview mx-auto mb-4 bg-gray-800" id="imagePreview">
+                        <img src="{% static 'assets/default-profile.png' %}" alt="Profile Preview" 
+                             class="w-full h-full object-cover">
+                    </div>
+                    <input type="file" name="image" accept="image/*" class="custom-file-input"
+                           onchange="previewImage(this)">
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-400">
+                            Profile Name
+                        </label>
+                        <input type="text" name="name" id="name" required
+                               class="mt-1 block w-full bg-gray-800 border border-gray-700 rounded-md 
+                                      shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-2 
+                                      focus:ring-pink-500 focus:border-pink-500">
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" name="is_child" id="is_child"
+                               class="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-700 
+                                      rounded bg-gray-800">
+                        <label for="is_child" class="ml-2 block text-sm text-gray-400">
+                            Child Profile
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center space-x-4 mt-8">
+                    <a href="{% url 'profile_selection' %}" 
+                       class="px-4 py-2 border border-gray-600 rounded-md text-gray-400 
+                              hover:text-white hover:border-white">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-4 py-2 border border-red-600 rounded-md text-white 
+                                   bg-red-600 hover:bg-red-700">
+                        Save Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    document.querySelector('#imagePreview img').src = e.target.result;
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html> 

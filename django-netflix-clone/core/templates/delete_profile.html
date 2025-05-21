@@ -1,0 +1,40 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Profile - Netfilm</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="container mx-auto px-4 py-16">
+        <div class="max-w-md mx-auto text-center">
+            <h1 class="text-4xl font-bold mb-8">Delete Profile</h1>
+            
+            <div class="mb-8">
+                <div class="w-32 h-32 mx-auto mb-4">
+                    <img src="{{ profile.image.url }}" alt="{{ profile.name }}" 
+                         class="w-full h-full object-cover rounded-lg">
+                </div>
+                <h2 class="text-2xl mb-2">{{ profile.name }}</h2>
+                <p class="text-gray-400 mb-8">Are you sure you want to delete this profile?</p>
+            </div>
+            
+            <form method="POST" class="flex justify-center space-x-4">
+                {% csrf_token %}
+                <a href="{% url 'profile_selection' %}" 
+                   class="px-6 py-2 border border-gray-600 rounded-md text-gray-400 
+                          hover:text-white hover:border-white">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Delete Profile
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html> 

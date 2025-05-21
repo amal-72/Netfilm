@@ -1,0 +1,170 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who's Watching? - Netfilm</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .profile-card {
+            width: 200px;
+            transition: all 0.3s ease;
+        }
+        .profile-card:hover {
+            transform: scale(1.1);
+        }
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .profile-image:hover .image-overlay {
+            opacity: 1;
+        }
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .image-upload {
+            display: none;
+        }
+        .change-photo-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .change-photo-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .add-profile-button {
+            width: 150px;
+            height: 150px;
+            border: 2px dashed #404040;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .add-profile-button:hover {
+            border-color: #ffffff;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="container mx-auto px-4 py-16">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl font-bold mb-8">Who's Watching?</h1>
+            
+            <div class="flex flex-wrap justify-center gap-8">
+                {% for profile in profiles %}
+                <div class="profile-card text-center">
+                    <div class="relative">
+                        <a href="{% url 'select_profile' profile.id %}" class="block">
+                            <div class="profile-image mx-auto mb-4">
+                                <img src="{{ profile.image.url }}" alt="{{ profile.name }}" 
+                                     class="w-full h-full object-cover" id="preview-{{ profile.id }}">
+                                <div class="image-overlay">
+                                    <label class="change-photo-btn">
+                                        <i class="fas fa-camera mr-2"></i>Change Photo
+                                        <input type="file" class="image-upload" 
+                                               data-profile-id="{{ profile.id }}"
+                                               accept="image/*"
+                                               onchange="updateProfileImage(this)">
+                                    </label>
+                                </div>
+                            </div>
+                            <h2 class="text-xl">{{ profile.name }}</h2>
+                            {% if profile.is_child %}
+                                <span class="text-sm text-gray-400">Child</span>
+                            {% endif %}
+                        </a>
+                        <div class="mt-4 opacity-0 hover:opacity-100 transition-opacity">
+                            <a href="{% url 'edit_profile' profile.id %}" 
+                               class="text-gray-400 hover:text-white text-sm">Edit</a>
+                            {% if profiles.count > 1 %}
+                            <span class="mx-2 text-gray-600">|</span>
+                            <a href="{% url 'delete_profile' profile.id %}" 
+                               class="text-gray-400 hover:text-white text-sm">Delete</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% if can_create %}
+                <div class="profile-card text-center">
+                    <a href="{% url 'create_profile' %}" class="block">
+                        <div class="add-profile-button mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-16 h-16 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl text-gray-400">Add Profile</h2>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-16">
+                <a href="{% url 'logout' %}" class="text-gray-400 hover:text-white">
+                    Sign Out
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function updateProfileImage(input) {
+            const profileId = input.getAttribute('data-profile-id');
+            const file = input.files[0];
+            
+            if (file) {
+                // Afficher l'aperçu
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-' + profileId).src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+
+                // Envoyer l'image au serveur
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+                $.ajax({
+                    url: '/profiles/update-image/' + profileId + '/',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        console.log('Image updated successfully');
+                    },
+                    error: function(xhr, errmsg, err) {
+                        console.error('Error updating image:', errmsg);
+                        // Remettre l'ancienne image en cas d'erreur
+                        document.getElementById('preview-' + profileId).src = '{{ profile.image.url }}';
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

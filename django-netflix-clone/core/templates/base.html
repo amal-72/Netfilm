@@ -1,0 +1,452 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netfilm - Watch TV Shows Online, Watch Movies Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/style.css' %}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="text-white bg-black">
+    <!-- Header -->
+    <header>
+        <div class="left-section">
+            <a href="/" class="logo">NETFILM</a>
+            <nav>
+                <a href="/" class="{% if request.path == '/' %}text-red-600{% endif %}">Accueil</a>
+                <a href="{% url 'all_genres' %}" class="{% if '/genre/' in request.path %}text-red-600{% endif %}">Genres</a>
+                <a href="/my-list/" class="{% if request.path == '/my-list/' %}text-red-600{% endif %}">Ma Liste</a>
+            </nav>
+        </div>
+
+        <div class="right-section">
+            <form action="{% url 'search' %}" method="POST" class="search-container">
+                {% csrf_token %}
+                <input type="search" name="search_term" placeholder="Rechercher" class="search-input">
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+
+            <div class="profile-container">
+                <div class="profile-image">
+                    <img id="header-profile-image" src="{{ current_profile.image.url }}" alt="{{ current_profile.name }}">
+                    <label for="profile-image-upload" class="profile-upload-overlay">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                    <input type="file" id="profile-image-upload" style="display: none;" 
+                        onchange="updateHeaderProfileImage(this)" data-profile-id="{{ current_profile.id }}">
+                </div>
+                <div class="profile-dropdown">
+                    <span class="profile-name">{{ current_profile.name }}</span>
+                    <i class="fas fa-caret-down"></i>
+                    <div class="dropdown-menu">
+                        <a href="{% url 'profile_selection' %}" class="dropdown-item">
+                            <i class="fas fa-users"></i> Changer de profil
+                        </a>
+                        <a href="/logout" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt"></i> Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Modal -->
+    <div class="modal" id="movieModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button onclick="hideModal()" class="close-button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-poster">
+                    <img id="modalImage" class="w-full h-full object-cover" alt="Movie Cover">
+                    <div class="poster-overlay">
+                        <div class="play-button-large" onclick="playMovie()">
+                            <i class="fas fa-play"></i>
+                            <span>Play</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-details">
+                    <h2 class="modal-title" id="modalTitle"></h2>
+                    <div class="modal-meta">
+                        <span class="match-percentage" id="modalMatch">98% Match</span>
+                        <span class="release-year" id="modalYear"></span>
+                        <span class="maturity-rating">TV-MA</span>
+                        <span class="duration" id="modalLength"></span>
+                        <span class="quality">HD</span>
+                    </div>
+                    <div class="modal-actions">
+                        <a id="modalPlayButton" class="play-button">
+                            <i class="fas fa-play"></i>
+                            <span>Play</span>
+                        </a>
+                        <button id="addToListButton" onclick="addItemToList()" class="add-button">
+                            <i class="fas fa-plus"></i>
+                            <span>Add to List</span>
+                        </button>
+                        <button class="like-button">
+                            <i class="fas fa-thumbs-up"></i>
+                        </button>
+                    </div>
+                    <div class="modal-description">
+                        <p id="modalDescription"></p>
+                    </div>
+                    <div class="modal-info">
+                        <div class="info-row">
+                            <span class="info-label">Cast:</span>
+                            <span class="info-value" id="modalCast">Actor 1, Actor 2, Actor 3</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Genre:</span>
+                            <span class="info-value" id="modalGenre"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Director:</span>
+                            <span class="info-value" id="modalDirector">Director Name</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Netflix-like header styles */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background-color: #141414;
+            padding: 0 4%;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.3s;
+        }
+        
+        header.scrolled {
+            background-color: #0c0c0c;
+        }
+        
+        .left-section {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            color: #E50914;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-decoration: none;
+            margin-right: 24px;
+        }
+        
+        nav {
+            display: flex;
+            align-items: center;
+        }
+        
+        nav a {
+            color: #e5e5e5;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 20px;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: #b3b3b3;
+        }
+        
+        .right-section {
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-container {
+            position: relative;
+            margin-right: 20px;
+        }
+        
+        .search-input {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 10px;
+            width: 240px;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .search-input:focus {
+            width: 280px;
+            outline: none;
+            background: rgba(0, 0, 0, 0.8);
+            border-color: #fff;
+        }
+        
+        .search-button {
+            background: transparent;
+            border: none;
+            color: #fff;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+        
+        .profile-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .profile-image {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+        
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-upload-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            cursor: pointer;
+        }
+        
+        .profile-image:hover .profile-upload-overlay {
+            opacity: 1;
+        }
+        
+        .profile-dropdown {
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .profile-dropdown:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .profile-name {
+            font-size: 14px;
+            color: #fff;
+            margin-right: 5px;
+        }
+
+        .fa-caret-down {
+            transition: transform 0.3s;
+        }
+
+        .profile-dropdown:hover .fa-caret-down {
+            transform: rotate(180deg);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 5px);
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            width: 200px;
+            padding: 10px 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+        
+        .profile-dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            color: #e5e5e5;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        .dropdown-item:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dropdown-item i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+        
+        .main-content {
+            padding-top: 68px;
+        }
+    </style>
+
+    <script>
+        function showModal(element) {
+            const modal = document.getElementById('movieModal');
+            if (!modal) {
+                console.error("Modal element not found");
+                return;
+            }
+
+            const data = {
+                title: element.getAttribute('data-title'),
+                description: element.getAttribute('data-description'),
+                releaseDate: element.getAttribute('data-release-date'),
+                genre: element.getAttribute('data-genre'),
+                length: element.getAttribute('data-length'),
+                imageCoverUrl: element.getAttribute('data-image-cover-url'),
+                videoUrl: element.getAttribute('data-video-url')
+            };
+
+            // Update modal content
+            document.getElementById('modalTitle').textContent = data.title;
+            document.getElementById('modalImage').src = data.imageCoverUrl;
+            document.getElementById('modalYear').textContent = data.releaseDate;
+            document.getElementById('modalGenre').textContent = data.genre;
+            document.getElementById('modalLength').textContent = data.length + 'min';
+            document.getElementById('modalDescription').textContent = data.description;
+            document.getElementById('modalPlayButton').href = data.videoUrl;
+
+            // Show modal with animation
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 50);
+        }
+
+        function hideModal() {
+            const modal = document.getElementById('movieModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('movieModal')) {
+                hideModal();
+            }
+        }
+
+        function playMovie() {
+            const playButton = document.getElementById('modalPlayButton');
+            window.location.href = playButton.href;
+        }
+
+        function addItemToList() {
+            const modal = document.getElementById('movieModal');
+            const movieID = modal.querySelector('#modalPlayButton').href;
+            const button = document.getElementById('addToListButton');
+            
+            $.ajax({
+                url: "{% url 'add-to-list' %}",
+                type: "POST",
+                data: {
+                    movie_id: movieID,
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                success: function(data) {
+                    button.innerHTML = '<i class="fas fa-check"></i><span>Added to List</span>';
+                    button.disabled = true;
+                    button.classList.remove('hover:bg-opacity-50');
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error("Error adding item to list: " + errmsg);
+                }
+            });
+        }
+
+        function updateHeaderProfileImage(input) {
+            if (input.files && input.files[0]) {
+                const profileId = input.getAttribute('data-profile-id');
+                const formData = new FormData();
+                formData.append('image', input.files[0]);
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                
+                fetch(`/update-profile-image/${profileId}/`, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update image in header
+                        document.getElementById('header-profile-image').src = data.image_url + '?t=' + new Date().getTime();
+                    } else {
+                        alert('Une erreur est survenue lors de la mise à jour de l\'image');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Une erreur est survenue lors de la mise à jour de l\'image');
+                });
+            }
+        }
+
+        // Header background change on scroll
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 10) {
+                document.querySelector('header').classList.add('scrolled');
+            } else {
+                document.querySelector('header').classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+</html> 

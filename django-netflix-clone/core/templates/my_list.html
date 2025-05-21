@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="list-header mb-8">
+            <h1 class="text-4xl font-bold mb-4">Ma Liste</h1>
+            <p class="text-gray-400 text-lg">Votre collection personnelle de films</p>
+        </div>
+
+        {% if movies %}
+            <div class="film-grid">
+                {% for movie in movies %}
+                <div class="film-card group"
+                    onclick="showModal(this)" 
+                    data-title="{{ movie.title }}"
+                    data-description="{{ movie.description }}"
+                    data-release-date="{{ movie.release_date|date:'Y' }}"
+                    data-genre="{{ movie.get_genre_display }}" 
+                    data-length="{{ movie.length }}"
+                    data-image-card-url="{{ movie.image_card.url }}"
+                    data-image-cover-url="{{ movie.image_cover.url }}"
+                    data-video-url="/movie/{{ movie.uu_id }}">
+                    <div class="relative w-full h-full">
+                        <img src="{{ movie.image_card.url }}" alt="{{ movie.title }}" 
+                             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="absolute bottom-0 left-0 right-0 p-4">
+                                <h3 class="text-lg font-bold mb-2">{{ movie.title }}</h3>
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <span class="text-green-500 font-semibold">98% Match</span>
+                                    <span class="text-gray-300">{{ movie.release_date|date:'Y' }}</span>
+                                    <span class="text-gray-300">{{ movie.length }} min</span>
+                                </div>
+                                <div class="mt-2 flex space-x-2">
+                                    <button class="play-button-sm" onclick="event.stopPropagation(); window.location.href='/movie/{{ movie.uu_id }}'">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <button class="remove-button-sm" onclick="event.stopPropagation(); removeFromList('{{ movie.uu_id }}')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-list text-center py-12">
+                <i class="fas fa-list-ul text-6xl text-gray-600 mb-4"></i>
+                <h2 class="text-2xl font-bold mb-2">Votre liste est vide</h2>
+                <p class="text-gray-400 mb-4">Ajoutez des films à votre liste pour les regarder plus tard</p>
+                <a href="/" class="button button-primary">
+                    <i class="fas fa-search mr-2"></i>
+                    Parcourir les films
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <style>
+        .list-header {
+            background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.3));
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .film-card {
+            position: relative;
+            width: 240px;
+            height: 360px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .film-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .play-button-sm {
+            background-color: white;
+            color: black;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .play-button-sm:hover {
+            background-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+        }
+
+        .info-button-sm {
+            background-color: rgba(109, 109, 110, 0.7);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .info-button-sm:hover {
+            background-color: rgba(109, 109, 110, 0.9);
+            transform: scale(1.1);
+        }
+
+        .remove-button-sm {
+            background-color: rgba(220, 38, 38, 0.7);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .remove-button-sm:hover {
+            background-color: rgba(220, 38, 38, 0.9);
+            transform: scale(1.1);
+        }
+
+        .film-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+
+        .empty-list {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 3rem;
+        }
+
+        @media (min-width: 1280px) {
+            .film-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+    </style>
+
+    <script>
+        function removeFromList(movieId) {
+            $.ajax({
+                url: "{% url 'remove-from-list' %}",
+                type: "POST",
+                data: {
+                    movie_id: movieId,
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                success: function(data) {
+                    // Rechargement de la page pour mettre à jour la liste
+                    window.location.reload();
+                },
+                error: function(xhr, errmsg, err) {
+                    console.error("Erreur lors de la suppression de l'élément : " + errmsg);
+                }
+            });
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,518 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero-section" style="background-image: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.3)), url('{{featured_movie.image_cover.url}}');">
+        <div class="hero-content">
+            <h1 class="hero-title">{{featured_movie.title}}</h1>
+            <div class="hero-meta">
+                <span class="text-green-500 font-semibold">98% Match</span>
+                <span>{{featured_movie.release_date|date:'Y'}}</span>
+                <span class="border px-2">{{featured_movie.get_genre_display}}</span>
+                <span>{{featured_movie.length}}min</span>
+            </div>
+            <p class="hero-description">{{featured_movie.description}}</p>
+            <div class="flex space-x-4">
+                <a href="/movie/{{featured_movie.uu_id}}" class="button button-primary">
+                    <i class="fas fa-play"></i>
+                    <span>Play</span>
+                </a>
+                <button class="button button-secondary" onclick="showMoreInfo('{{featured_movie.uu_id}}')" 
+                        data-title="{{featured_movie.title}}"
+                        data-description="{{featured_movie.description}}"
+                        data-release-date="{{featured_movie.release_date|date:'Y'}}"
+                        data-genre="{{featured_movie.get_genre_display}}" 
+                        data-length="{{featured_movie.length}}"
+                        data-image-card-url="{{featured_movie.image_card.url}}"
+                        data-image-cover-url="{{featured_movie.image_cover.url}}"
+                        data-video-url="/movie/{{featured_movie.uu_id}}">
+                    <i class="fas fa-info-circle"></i>
+                    <span>More Info</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content Sections -->
+    <div class="relative z-10 -mt-20">
+        <!-- Continue Watching -->
+        <section class="content-section">
+            <h2 class="section-title">Continue Watching</h2>
+            <div class="film-grid">
+                {% for movie in movies|slice:":6" %}
+                <div class="film-card group relative">
+                    <img src="{{ movie.image_card.url }}" alt="{{ movie.title }}" 
+                         class="w-full h-full object-cover">
+                    <div class="film-info absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4">
+                        <div class="flex flex-col h-full justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-white">{{ movie.title }}</h3>
+                                <div class="flex items-center space-x-2 text-sm text-gray-300">
+                                    <span class="text-green-500">98% Match</span>
+                                    <span>{{ movie.release_date|date:'Y' }}</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="/movie/{{ movie.uu_id }}" class="flex-1 bg-white text-black px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-200 transition-colors duration-200">
+                                    <i class="fas fa-play"></i>
+                                    <span>Play</span>
+                                </a>
+                                <button onclick="addToMyList('{{ movie.uu_id }}', this)" class="flex-1 bg-gray-600 bg-opacity-70 text-white px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-500 transition-colors duration-200">
+                                    <i class="fas fa-plus"></i>
+                                    <span>My List</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Popular on Netfilm -->
+        <section class="content-section">
+            <h2 class="section-title">Popular on Netfilm</h2>
+            <div class="film-grid">
+                {% for movie in movies %}
+                <div class="film-card group relative">
+                    <img src="{{ movie.image_card.url }}" alt="{{ movie.title }}" 
+                         class="w-full h-full object-cover">
+                    <div class="film-info absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4">
+                        <div class="flex flex-col h-full justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-white">{{ movie.title }}</h3>
+                                <div class="flex items-center space-x-2 text-sm text-gray-300">
+                                    <span class="text-green-500">98% Match</span>
+                                    <span>{{ movie.release_date|date:'Y' }}</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="/movie/{{ movie.uu_id }}" class="flex-1 bg-white text-black px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-200 transition-colors duration-200">
+                                    <i class="fas fa-play"></i>
+                                    <span>Play</span>
+                                </a>
+                                <button onclick="addToMyList('{{ movie.uu_id }}', this)" class="flex-1 bg-gray-600 bg-opacity-70 text-white px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-500 transition-colors duration-200">
+                                    <i class="fas fa-plus"></i>
+                                    <span>My List</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Trending Now -->
+        <section class="content-section">
+            <h2 class="section-title">Trending Now</h2>
+            <div class="film-grid">
+                {% for movie in movies|slice:":6" %}
+                <div class="film-card group relative">
+                    <img src="{{ movie.image_card.url }}" alt="{{ movie.title }}" 
+                         class="w-full h-full object-cover">
+                    <div class="film-info absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4">
+                        <div class="flex flex-col h-full justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-white">{{ movie.title }}</h3>
+                                <div class="flex items-center space-x-2 text-sm text-gray-300">
+                                    <span class="text-green-500">98% Match</span>
+                                    <span>{{ movie.release_date|date:'Y' }}</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="/movie/{{ movie.uu_id }}" class="flex-1 bg-white text-black px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-200 transition-colors duration-200">
+                                    <i class="fas fa-play"></i>
+                                    <span>Play</span>
+                                </a>
+                                <button onclick="addToMyList('{{ movie.uu_id }}', this)" class="flex-1 bg-gray-600 bg-opacity-70 text-white px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-500 transition-colors duration-200">
+                                    <i class="fas fa-plus"></i>
+                                    <span>My List</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- New Releases -->
+        <section class="content-section">
+            <h2 class="section-title">New Releases</h2>
+            <div class="film-grid">
+                {% for movie in movies|slice:":6" %}
+                <div class="film-card group relative">
+                    <img src="{{ movie.image_card.url }}" alt="{{ movie.title }}" 
+                         class="w-full h-full object-cover">
+                    <div class="film-info absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4">
+                        <div class="flex flex-col h-full justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-white">{{ movie.title }}</h3>
+                                <div class="flex items-center space-x-2 text-sm text-gray-300">
+                                    <span class="text-green-500">98% Match</span>
+                                    <span>{{ movie.release_date|date:'Y' }}</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="/movie/{{ movie.uu_id }}" class="flex-1 bg-white text-black px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-200 transition-colors duration-200">
+                                    <i class="fas fa-play"></i>
+                                    <span>Play</span>
+                                </a>
+                                <button onclick="addToMyList('{{ movie.uu_id }}', this)" class="flex-1 bg-gray-600 bg-opacity-70 text-white px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-500 transition-colors duration-200">
+                                    <i class="fas fa-plus"></i>
+                                    <span>My List</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Dynamic Sections -->
+        {% for section in sections %}
+        <section class="content-section">
+            <h2 class="section-title">{{ section.get_name_display }}</h2>
+            <div class="film-grid">
+                {% for movie in section.movies.all %}
+                <div class="film-card group relative">
+                    <img src="{{ movie.image_card.url }}" alt="{{ movie.title }}" 
+                         class="w-full h-full object-cover">
+                    <div class="film-info absolute inset-0 bg-black bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4">
+                        <div class="flex flex-col h-full justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-white">{{ movie.title }}</h3>
+                                <div class="flex items-center space-x-2 text-sm text-gray-300">
+                                    <span class="text-green-500">98% Match</span>
+                                    <span>{{ movie.release_date|date:'Y' }}</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="/movie/{{ movie.uu_id }}" class="flex-1 bg-white text-black px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-200 transition-colors duration-200">
+                                    <i class="fas fa-play"></i>
+                                    <span>Play</span>
+                                </a>
+                                <button onclick="addToMyList('{{ movie.uu_id }}', this)" class="flex-1 bg-gray-600 bg-opacity-70 text-white px-4 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-500 transition-colors duration-200">
+                                    <i class="fas fa-plus"></i>
+                                    <span>My List</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+
+    <!-- More Info Modal -->
+    <div id="moreInfoModal" class="fixed inset-0 bg-black/95 z-50 overflow-y-auto hidden">
+        <div class="min-h-screen">
+            <div class="relative">
+                <!-- Movie Background -->
+                <div id="moreInfoHeader" class="relative h-screen bg-cover bg-center bg-no-repeat">
+                    <!-- Close Button -->
+                    <button onclick="closeMoreInfo()" class="absolute top-8 right-8 z-10 text-white hover:text-red-500 transition-all duration-300 transform hover:scale-110">
+                        <i class="fas fa-times text-4xl"></i>
+                    </button>
+
+                    <!-- Movie Info -->
+                    <div class="absolute bottom-0 left-0 right-0 p-12">
+                        <div class="max-w-6xl mx-auto">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                                <!-- Movie Poster -->
+                                <div class="relative aspect-[2/3] w-full max-w-sm mx-auto md:mx-0 rounded-lg overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-300">
+                                    <img id="moreInfoMovieImage" src="" alt="Movie Poster" class="w-full h-full object-cover">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                                </div>
+
+                                <!-- Movie Details -->
+                                <div class="md:col-span-2">
+                                    <!-- Title and Metadata -->
+                                    <div class="mb-8">
+                                        <h2 id="moreInfoTitle" class="text-6xl font-bold mb-4 text-white leading-tight"></h2>
+                                        <div class="flex items-center space-x-6">
+                                            <span class="text-green-500 font-bold text-xl">98% Match</span>
+                                            <span id="moreInfoYear" class="text-gray-300 text-xl"></span>
+                                            <span class="border border-gray-600 px-3 py-1 text-sm rounded">HD</span>
+                                            <span id="moreInfoDuration" class="text-gray-300 text-xl"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="mb-8">
+                                        <h3 class="text-2xl font-bold mb-4 text-white">Synopsis</h3>
+                                        <p id="moreInfoDescription" class="text-gray-300 text-lg leading-relaxed"></p>
+                                    </div>
+
+                                    <!-- Additional Info -->
+                                    <div class="grid grid-cols-2 gap-8">
+                                        <div>
+                                            <span class="text-gray-400 block text-sm uppercase tracking-wider mb-2">Release Date</span>
+                                            <p id="moreInfoReleaseDate" class="text-white text-lg"></p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400 block text-sm uppercase tracking-wider mb-2">Genre</span>
+                                            <p id="moreInfoGenre" class="text-white text-lg"></p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400 block text-sm uppercase tracking-wider mb-2">Duration</span>
+                                            <p id="moreInfoDurationFull" class="text-white text-lg"></p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400 block text-sm uppercase tracking-wider mb-2">Views</span>
+                                            <p id="moreInfoViews" class="text-white text-lg"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        #moreInfoModal {
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #moreInfoModal.show {
+            opacity: 1;
+        }
+        
+        #moreInfoModal.hide {
+            opacity: 0;
+        }
+        
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #moreInfoModal.show .modal-content {
+            transform: scale(1);
+        }
+
+        /* Custom Scrollbar */
+        #moreInfoModal::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #moreInfoModal::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        #moreInfoModal::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        #moreInfoModal::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Text Shadows */
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Hover Effects */
+        .hover-scale {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+
+        /* Gradient Overlays */
+        .gradient-overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%);
+        }
+
+        /* Responsive Typography */
+        @media (max-width: 768px) {
+            .text-6xl {
+                font-size: 2.5rem;
+            }
+            
+            .text-xl {
+                font-size: 1.125rem;
+            }
+
+            .max-w-sm {
+                max-width: 12rem;
+            }
+
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Movie Poster Animation */
+        .aspect-\[2\/3\] {
+            transition: all 0.3s ease;
+        }
+
+        .aspect-\[2\/3\]:hover {
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Text Gradient */
+        .text-gradient {
+            background: linear-gradient(to right, #fff, #ccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Info Grid */
+        .grid-cols-2 > div {
+            transition: all 0.3s ease;
+        }
+
+        .grid-cols-2 > div:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        const moreInfoModal = document.getElementById('moreInfoModal');
+        const moreInfoHeader = document.getElementById('moreInfoHeader');
+        const moreInfoTitle = document.getElementById('moreInfoTitle');
+        const moreInfoYear = document.getElementById('moreInfoYear');
+        const moreInfoDuration = document.getElementById('moreInfoDuration');
+        const moreInfoGenre = document.getElementById('moreInfoGenre');
+        const moreInfoDescription = document.getElementById('moreInfoDescription');
+        const moreInfoMovieImage = document.getElementById('moreInfoMovieImage');
+        const moreInfoReleaseDate = document.getElementById('moreInfoReleaseDate');
+        const moreInfoDurationFull = document.getElementById('moreInfoDurationFull');
+        const moreInfoViews = document.getElementById('moreInfoViews');
+
+        function showMoreInfo(movieId) {
+            // Afficher le modal immédiatement
+            moreInfoModal.classList.remove('hidden');
+            moreInfoModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            // Récupérer les données du bouton
+            const button = document.querySelector(`[onclick="showMoreInfo('${movieId}')"]`);
+            const title = button.getAttribute('data-title');
+            const description = button.getAttribute('data-description');
+            const releaseDate = button.getAttribute('data-release-date');
+            const genre = button.getAttribute('data-genre');
+            const length = button.getAttribute('data-length');
+            const imageCardUrl = button.getAttribute('data-image-card-url');
+            const imageCoverUrl = button.getAttribute('data-image-cover-url');
+
+            // Mettre à jour le contenu du modal
+            moreInfoHeader.style.backgroundImage = `linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%), linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%), url('${imageCoverUrl}')`;
+            moreInfoTitle.textContent = title;
+            moreInfoYear.textContent = releaseDate;
+            moreInfoDuration.textContent = `${length} min`;
+            moreInfoGenre.textContent = genre;
+            moreInfoDescription.textContent = description;
+            moreInfoMovieImage.src = imageCardUrl;
+            moreInfoReleaseDate.textContent = releaseDate;
+            moreInfoDurationFull.textContent = `${length} minutes`;
+        }
+
+        function closeMoreInfo() {
+            moreInfoModal.classList.remove('show');
+            moreInfoModal.classList.add('hide');
+            document.body.style.overflow = 'auto';
+            
+            setTimeout(() => {
+                moreInfoModal.classList.add('hidden');
+                moreInfoModal.classList.remove('hide');
+            }, 500);
+        }
+
+        // Close modal when clicking outside
+        moreInfoModal.addEventListener('click', function(event) {
+            if (event.target === moreInfoModal) {
+                closeMoreInfo();
+            }
+        });
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeMoreInfo();
+            }
+        });
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function addToMyList(movieId, button) {
+            // Désactiver le bouton pendant la requête
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Adding...</span>';
+
+            // Créer un formulaire pour envoyer les données
+            const form = new FormData();
+            form.append('movie_id', movieId);
+            form.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            // Envoyer la requête
+            fetch('{% url "add-to-list" %}', {
+                method: 'POST',
+                body: form,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    button.innerHTML = '<i class="fas fa-check"></i><span>Added</span>';
+                    button.classList.remove('bg-gray-600', 'hover:bg-gray-500');
+                    button.classList.add('bg-green-600', 'hover:bg-green-500');
+                    // Rediriger vers la page My List
+                    window.location.href = '{% url "my-list" %}';
+                } else if (data.status === 'info') {
+                    button.innerHTML = '<i class="fas fa-check"></i><span>In List</span>';
+                    button.classList.remove('bg-gray-600', 'hover:bg-gray-500');
+                    button.classList.add('bg-green-600', 'hover:bg-green-500');
+                    // Rediriger vers la page My List
+                    window.location.href = '{% url "my-list" %}';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Error</span>';
+                button.classList.remove('bg-gray-600', 'hover:bg-gray-500');
+                button.classList.add('bg-red-600', 'hover:bg-red-500');
+                
+                // Réactiver le bouton après l'erreur
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-plus"></i><span>My List</span>';
+                    button.classList.remove('bg-red-600', 'hover:bg-red-500');
+                    button.classList.add('bg-gray-600', 'hover:bg-gray-500');
+                }, 2000);
+            });
+        }
+    </script>
+{% endblock %}
